@@ -57,14 +57,17 @@ func FormatQuit() {
 func Convert(inputData []byte, outputFormat string) (outData []byte, err error) {
 	var sndIn, sndOut C.snd_file
 	format := C.CString(outputFormat)
-	sndIn.buff = unsafe.Pointer(&inputData[0])
 	sndIn.size = (C.size_t)(len(inputData))
+	sndIn.buff = C.malloc(sndIn.size)
+	cBuf := (*[1 << 30]byte)(sndIn.buff)
+	copy(cBuf[:], inputData)
 
 	sndOut = C.convert_snd(&sndIn, format)
 	if (uint)(sndOut.size) == 0 {
 		err = fmt.Errorf("Failed to convert sound data")
 	}
 	outData = C.GoBytes(sndOut.buff, (C.int)(sndOut.size))
+	C.free(unsafe.Pointer(sndIn.buff))
 	C.free(unsafe.Pointer(sndOut.buff))
 	C.free(unsafe.Pointer(format))
 	return
