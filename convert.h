@@ -20,18 +20,17 @@ typedef struct snd_file {
 	size_t size;
 } snd_file;
 
-snd_file convert_snd(snd_file *in_snd, char* format) {
+snd_file convert_snd(snd_file *in_snd, char* in_format, char* out_format) {
 	snd_file out_snd = { NULL, 0 };
 	static sox_format_t *in, *out;
 	sox_effects_chain_t *chain;
 	sox_effect_t *e;
 	char *args[10];
-	char *in_ftype = "wav";
 	char *ftype;
 	sox_signalinfo_t interm_signal, out_signal;
 	sox_encodinginfo_t out_encoding;
 
-	if (strcmp(format, "ulaw") == 0) {
+	if (strcmp(out_format, "ulaw") == 0 || strcmp(out_format, "ul") == 0) {
 		ftype = "ul";
 		out_signal = (sox_signalinfo_t) { 8000, 1, 0, 0, NULL };
 		out_encoding = (sox_encodinginfo_t) {
@@ -43,7 +42,7 @@ snd_file convert_snd(snd_file *in_snd, char* format) {
 			sox_option_default,
 			sox_false
 		};
-	} else if (strcmp(format, "alaw") == 0) {
+	} else if (strcmp(out_format, "alaw") == 0 || strcmp(out_format, "al") == 0) {
 		ftype = "al";
 		out_signal = (sox_signalinfo_t) { 8000, 1, 0, 0, NULL };
 		out_encoding = (sox_encodinginfo_t) {
@@ -55,7 +54,7 @@ snd_file convert_snd(snd_file *in_snd, char* format) {
 			sox_option_default,
 			sox_false
 		};
-	} else if (strcmp(format, "gsm") == 0) {
+	} else if (strcmp(out_format, "gsm") == 0) {
 		ftype = "gsm";
 		out_signal = (sox_signalinfo_t) { 8000, 1, 0, 0, NULL };
 		out_encoding = (sox_encodinginfo_t) {
@@ -67,7 +66,7 @@ snd_file convert_snd(snd_file *in_snd, char* format) {
 			sox_option_default,
 			sox_false
 		};
-	} else if (strcmp(format, "wav") == 0 || strcmp(format, "wav16") == 0) {
+	} else if (strcmp(out_format, "wav") == 0 || strcmp(out_format, "wav16") == 0) {
 		ftype = "wav";
 		out_signal = (sox_signalinfo_t) { 16000, 1, 0, 0, NULL };
 		out_encoding = (sox_encodinginfo_t) {
@@ -79,7 +78,7 @@ snd_file convert_snd(snd_file *in_snd, char* format) {
 			sox_option_default,
 			sox_false
 		};
-	} else if (strcmp(format, "wav8") == 0) {
+	} else if (strcmp(out_format, "wav8") == 0) {
 		ftype = "wav";
 		out_signal = (sox_signalinfo_t) { 8000, 1, 0, 0, NULL };
 		out_encoding = (sox_encodinginfo_t) {
@@ -91,7 +90,7 @@ snd_file convert_snd(snd_file *in_snd, char* format) {
 			sox_option_default,
 			sox_false
 		};
-	} else if (strcmp(format, "mp3") == 0) {
+	} else if (strcmp(out_format, "mp3") == 0) {
 		ftype = "mp3";
 		out_signal = (sox_signalinfo_t) { 16000, 1, 0, 0, NULL };
 		out_encoding = (sox_encodinginfo_t) {
@@ -103,7 +102,7 @@ snd_file convert_snd(snd_file *in_snd, char* format) {
 			sox_option_default,
 			sox_false
 		};
-	} else if (strcmp(format, "ogg") == 0) {
+	} else if (strcmp(out_format, "ogg") == 0) {
 		ftype = "ogg";
 		out_signal = (sox_signalinfo_t) { 16000, 1, 0, 0, NULL };
 		out_encoding = (sox_encodinginfo_t) {
@@ -115,7 +114,7 @@ snd_file convert_snd(snd_file *in_snd, char* format) {
 			sox_option_default,
 			sox_false
 		};
-	} else if (strcmp(format, "flac") == 0) {
+	} else if (strcmp(out_format, "flac") == 0) {
 		ftype = "flac";
 		out_signal = (sox_signalinfo_t) { 16000, 1, 0, 0, NULL };
 		out_encoding = (sox_encodinginfo_t) {
@@ -131,7 +130,7 @@ snd_file convert_snd(snd_file *in_snd, char* format) {
 		return out_snd;
 	}
 
-	in = sox_open_mem_read(in_snd->buff, in_snd->size, NULL, NULL, in_ftype);
+	in = sox_open_mem_read(in_snd->buff, in_snd->size, NULL, NULL, in_format);
 	if (in == NULL || in->encoding.encoding == SOX_ENCODING_UNKNOWN ) {
 		return out_snd;
 	}

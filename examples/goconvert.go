@@ -1,7 +1,7 @@
 /*
 	Sound file conversion using sox
 
-	usage: goconvert input.file output.file output.format
+	usage: goconvert input.file output.format
 
 	output.format can be one of the following:
 	alaw, ulaw, gsm, wav, wav8, ogg, mp3, flac
@@ -20,25 +20,34 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/zaf/sox"
 )
 
-// Read a wav file from disk and convert it to another format.
+// Read a sound file from disk and convert it to another format.
 func main() {
-	if len(os.Args) < 4 {
+	if len(os.Args) < 3 {
 		log.Fatalln("not enough parameters")
 	}
-	inputFile := os.Args[1]
-	outputFile := os.Args[2]
-	outFormat := os.Args[3]
 	var err error
 	var input, output []byte
+	inputFile := os.Args[1]
+	outFormat := os.Args[2]
 
 	input, err = ioutil.ReadFile(inputFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	inFormat := filepath.Ext(inputFile)
+	if len(inFormat) > 1 {
+		inFormat = inFormat[1:]
+	} else {
+		log.Fatalln("not able to determine input format from file extension")
+	}
+	outputFile := strings.TrimSuffix(inputFile, filepath.Ext(inputFile)) + "." + outFormat
 
 	err = sox.Init()
 	if err != nil {
@@ -50,8 +59,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// libsox is not threaad safe, never use it in go-rourunes or similar context.
-	output, err = sox.Convert(input, outFormat)
+	// libsox is not thread safe, never use it in go-rourunes or similar context.
+	output, err = sox.Convert(input, inFormat, outFormat)
 	if err != nil {
 		log.Fatalln(err)
 	}

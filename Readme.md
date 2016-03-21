@@ -2,11 +2,7 @@
 
  **Do not use yet**
 
-Supported input formats:
-
- - wav
-
-Supported output formats:
+Supported formats:
 
  - G771a
  - G711u

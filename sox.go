@@ -54,21 +54,26 @@ func FormatQuit() {
 }
 
 //Convert wav files
-func Convert(inputData []byte, outputFormat string) (outData []byte, err error) {
+func Convert(inputData []byte, inputFormat string, outputFormat string) (outData []byte, err error) {
 	var sndIn, sndOut C.snd_file
-	format := C.CString(outputFormat)
+	inFormat := C.CString(inputFormat)
+	outFormat := C.CString(outputFormat)
 	sndIn.size = (C.size_t)(len(inputData))
 	sndIn.buff = C.malloc(sndIn.size)
 	cBuf := (*[1 << 30]byte)(sndIn.buff)
+	//cBuf := (*[1 << 30]byte)(sndIn.buff)[:len(inputData)]
+	//sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&cBuf))
+	//sliceHeader.Cap = len(inputData)
 	copy(cBuf[:], inputData)
 
-	sndOut = C.convert_snd(&sndIn, format)
+	sndOut = C.convert_snd(&sndIn, inFormat, outFormat)
 	if (uint)(sndOut.size) == 0 {
 		err = fmt.Errorf("Failed to convert sound data")
 	}
 	outData = C.GoBytes(sndOut.buff, (C.int)(sndOut.size))
 	C.free(unsafe.Pointer(sndIn.buff))
 	C.free(unsafe.Pointer(sndOut.buff))
-	C.free(unsafe.Pointer(format))
+	C.free(unsafe.Pointer(inFormat))
+	C.free(unsafe.Pointer(outFormat))
 	return
 }
