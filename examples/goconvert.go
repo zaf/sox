@@ -6,7 +6,7 @@
 	output.format can be one of the following:
 	alaw, ulaw, gsm, wav, wav8, ogg, mp3, flac
 
-	Copyright (C) 2016, Lefteris Zafiris <zaf.000@gmail.com>
+	Copyright (C) 2016, Lefteris Zafiris <zaf@fastmail.com>
 
 	This program is free software, distributed under the terms of
 	the BSD 3-Clause License. See the LICENSE file
