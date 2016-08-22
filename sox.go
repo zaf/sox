@@ -59,13 +59,7 @@ func Convert(inputData []byte, inputFormat string, outputFormat string) (outData
 	inFormat := C.CString(inputFormat)
 	outFormat := C.CString(outputFormat)
 	sndIn.size = (C.size_t)(len(inputData))
-	sndIn.buff = C.malloc(sndIn.size)
-	cBuf := (*[1 << 30]byte)(sndIn.buff)
-	//cBuf := (*[1 << 30]byte)(sndIn.buff)[:len(inputData)]
-	//sliceHeader := (*reflect.SliceHeader)(unsafe.Pointer(&cBuf))
-	//sliceHeader.Cap = len(inputData)
-	copy(cBuf[:], inputData)
-
+	sndIn.buff = C.CBytes(inputData)
 	sndOut = C.convert_snd(&sndIn, inFormat, outFormat)
 	if (uint)(sndOut.size) == 0 {
 		err = fmt.Errorf("Failed to convert sound data")
