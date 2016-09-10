@@ -23,6 +23,7 @@ import (
 	"log"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/zaf/sox"
 )
@@ -50,35 +51,42 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	wg := new(sync.WaitGroup)
 	for _, file := range flag.Args() {
-		var err error
-		var input, output []byte
-		input, err = ioutil.ReadFile(file)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		inFormat := filepath.Ext(file)
-		if len(inFormat) > 1 {
-			inFormat = inFormat[1:]
-		} else {
-			log.Printf("not able to determine input format from file extension for %s\n", file)
-			continue
-		}
-		output, err = sox.Convert(input, inFormat, outFormat)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		outputFile := strings.TrimSuffix(file, filepath.Ext(file)) + "." + outFormat
-		err = ioutil.WriteFile(outputFile, output, 0644)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		fmt.Printf("Saved %s\n", outputFile)
+		wg.Add(1)
+		inputFile := file
+		// libsox is not thread safe, never use it in go-rourunes or similar context. The following code panics
+		go func() {
+			defer wg.Done()
+			var err error
+			var input, output []byte
+			input, err = ioutil.ReadFile(inputFile)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			inFormat := filepath.Ext(inputFile)
+			if len(inFormat) > 1 {
+				inFormat = inFormat[1:]
+			} else {
+				log.Printf("not able to determine input format from file extension for %s\n", file)
+				return
+			}
+			output, err = sox.Convert(input, inFormat, outFormat)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			outputFile := strings.TrimSuffix(inputFile, filepath.Ext(inputFile)) + "." + outFormat
+			err = ioutil.WriteFile(outputFile, output, 0644)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			fmt.Printf("Saved %s\n", outputFile)
+		}()
 	}
+	wg.Wait()
 	sox.FormatQuit()
 	sox.Quit()
 }
